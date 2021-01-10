@@ -2,6 +2,8 @@
 
 _Alt Title: Why Perfect Hash Functions are Magic_
 
+**NOTE:** This is still a WIP. I'm still hacking around with crunching things down even more (e.g: instead of storing emoji as strings, I'll store them in a compacted `u64`-backed representation). Oh, and the writeup still needs some work as well, obviously.
+
 ## Building and Running
 
 At the moment, building this library requires running a \*nix OS with `curl` installed (to download the emoji database as part of the build process).
@@ -12,7 +14,7 @@ There are several test binaries included in this repo:
 
 - `collision-test`: a very messy playground for testing how well the library rejects invalid inputs.
 - `example_no_std`: a `no_std` Rust binary that serves as a rough benchmark for how much space the library occupies in a final binary.
-- `shortcode_web`: using the magic of `wasm-pack`, you can play with this project via a [incredibly barebones and terrible looking] online demo!
+- `shortcode_web`: using the magic of `wasm-pack`, you can play with this project via an [incredibly barebones and terrible looking] online demo!
 
 Try out the online demo [here](https://prilik.com/compressed-emoji-shortcodes)!
 
