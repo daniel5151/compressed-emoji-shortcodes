@@ -1,0 +1,16 @@
+[package]
+name = "phf_shared"
+authors = ["Steven Fackler <sfackler@gmail.com>"]
+version = "0.8.0"
+license = "MIT"
+description = "Support code shared by PHF libraries"
+repository = "https://github.com/sfackler/rust-phf"
+edition = "2018"
+
+[lib]
+name = "phf_shared"
+path = "src/lib.rs"
+test = false
+
+[dependencies]
+siphasher = "0.3"
