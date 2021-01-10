@@ -20,11 +20,11 @@ Try out the online demo [here](https://prilik.com/compressed-emoji-shortcodes)!
 
 ## Inspiration
 
-I'm a big fan of custom mechanical keyboard, as aside from looking and sounding awesome, they're also a really fun hardware-hacking platform. Most custom mechanical keyboards use the open source [QMK firmware](https://github.com/qmk/qmk_firmware), which comes with a host of built-in features for doing just about anything you'd want on a keyboard.
+I'm a big fan of custom mechanical keyboards, as aside from looking and sounding awesome, they're also a really fun hardware-hacking platform. Most custom mechanical keyboards use the open source [QMK firmware](https://github.com/qmk/qmk_firmware), which comes with a host of built-in features for doing just about anything you'd want on a keyboard.
 
 One such feature is the ability to [type Unicode characters](https://beta.docs.qmk.fm/using-qmk/software-features/feature_unicode). In a nutshell, you can program the keyboard such that when a certain key (or sequence of keys) is pressed, the keyboard will send whatever keystrokes are required to input Unicode on any of the several [supported platforms](https://beta.docs.qmk.fm/using-qmk/software-features/feature_unicode#2-input-modes-id-input-modes). This is great, because it means that the 🅱 emoji is never more than a few keystrokes away!
 
-One key limitation of QMK's built-in unicode support is that it requires users are required to manually specify what set of characters they'd like to support. Of course, this makes perfect sense when you consider that most keyboards use embedded MCUs with very limited amounts of available Flash ROM. I mean, come on, it's not like it's even _remotely_ feasible to stuff an entire unicode/emoji database on chip, right?
+One key limitation of QMK's built-in unicode support is that it requires users to manually specify what set of characters they'd like to support. Of course, this makes perfect sense when you consider that most keyboards use low-cost, low-power MCUs with very limited amounts of Flash ROM. I mean, come on, it's not like it'd be even _remotely_ feasible to stuff an entire unicode/emoji database on chip, right?
 
 Well, maybe it is!
 
@@ -42,7 +42,9 @@ TODO: write some more about the process of arriving at the final solution
 
 ## Final Implementation
 
-In a nutshell, this library uses a modified version of the incredible [rust-phf](https://github.com/sfackler/rust-phf) to generate a [perfect](https://en.wikipedia.org/wiki/Perfect_hash_function) hash-map of shortcodes to emoji at compile time, but instead of storing the keys as raw strings (which would take up a _lot_ of space, around `size_of(char*)` + 5 or 6 bytes on average), the map only stores a _1 byte hash_ of the expected string. This _substantially_ reducing the storage requirements, at the expense of the potential "false positive" results.
+This library uses a modified version of the incredible [rust-phf](https://github.com/sfackler/rust-phf) to generate a [perfect](https://en.wikipedia.org/wiki/Perfect_hash_function) hash-map of shortcodes to emoji at compile time, but instead of storing the keys as raw strings (which would take up a _lot_ of space, around `size_of(char*)` + 5 or 6 bytes on average), the map only stores a _1 byte hash_ of the expected string. This _substantially_ reducing the storage requirements, at the expense of the potential "false positive" results.
+
+Similarly, emoji are stored in a compressed representation, backed by a `u64`. (this is still a WIP, and isn't implemented yet)
 
 * * *
 
