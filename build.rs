@@ -10,9 +10,9 @@ const EMOJI_DB: &str = "https://raw.githubusercontent.com/github/gemoji/master/d
 
 #[derive(Deserialize)]
 struct Emoji {
-    emoji: Option<String>,
+    emoji: String,
     aliases: Vec<String>,
-    category: String,
+    // category: String,
 }
 
 fn main() {
@@ -38,16 +38,18 @@ fn main() {
     let codegen_path = Path::new(&env::var("OUT_DIR").unwrap()).join("codegen.rs");
     let file = &mut BufWriter::new(File::create(&codegen_path).unwrap());
 
-    writeln!(file, "pub static SHORTCODES: &[&'static str] = &[").unwrap();
+    writeln!(
+        file,
+        "pub static RAW_PAIRS: &[(&'static str, &'static str)] = &["
+    )
+    .unwrap();
     for e in &emoji {
         // if e.category == "Flags" {
         //     continue;
         // }
 
-        if let Some(_unicode_emoji) = &e.emoji {
-            for name in &e.aliases {
-                writeln!(file, "    \"{}\",", name).unwrap();
-            }
+        for name in &e.aliases {
+            writeln!(file, "    (\"{}\", \"{}\"),", name, e.emoji).unwrap();
         }
     }
     writeln!(file, "];").unwrap();
@@ -59,18 +61,24 @@ fn main() {
         //     continue;
         // }
 
-        if let Some(unicode_emoji) = &e.emoji {
-            let code = format!("\"{}\"", unicode_emoji);
-            for name in &e.aliases {
-                m.entry(name.as_str(), &code);
-            }
+        let emoji = e.emoji.as_bytes();
+        if emoji.len() > 8 {
+            continue;
+        }
+
+        let mut buf = [0; 8];
+        buf[..emoji.len()].copy_from_slice(emoji);
+
+        for name in &e.aliases {
+            m.entry(name.as_str(), u64::from_le_bytes(buf));
         }
     }
     let m = m.build();
 
     writeln!(file, "/// Compile time generated lookup table for emoji.").unwrap();
+    writeln!(file, "/// Emoji strings are stored as inline u64").unwrap();
     writeln!(file, "/// ").unwrap();
     writeln!(file, "/// Taken from https://github.com/github/gemoji").unwrap();
-    write!(file, "pub static EMOJI: phf::Map<&'static str> = ").unwrap();
+    write!(file, "pub static EMOJI: phf::Map<u64> = ").unwrap();
     writeln!(file, "{};", m).unwrap();
 }

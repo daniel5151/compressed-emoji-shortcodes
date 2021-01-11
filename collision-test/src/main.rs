@@ -1,61 +1,64 @@
 use std::collections::HashSet;
-use std::io::{BufRead, BufReader};
 
-use keygraph_rs::KeySearch;
 use rand::seq::IteratorRandom;
 
-use maximally_compressed_gh_shortcodes::{lookup, SHORTCODES};
+use maximally_compressed_gh_shortcodes::{lookup, RAW_PAIRS};
 
-fn main() -> Result<(), Box<dyn std::error::Error>> {
+fn main() {
+    let mut buf = [0; 8];
+
+    // let test = RAW_PAIRS
+    //     .iter()
+    //     .filter(|(_, e)| e.len() == 12)
+    //     .collect::<Vec<_>>();
+    // for (k, v) in test {
+    //     eprintln!("{}: {}", v, k);
+    // }
+
+    // let test = RAW_PAIRS.iter().fold(
+    //     std::collections::BTreeMap::<usize, Vec<_>>::new(),
+    //     |mut a, (code, e)| {
+    //         assert!(e.as_bytes().iter().all(|b| *b != 0));
+    //         a.entry(e.len()).or_default().push((code, e));
+    //         a
+    //     },
+    // );
+    // for (k, v) in test {
+    //     if k < 7 {
+    //         continue;
+    //     }
+    //     eprintln!("Count {}", k);
+    //     for (code, e) in v {
+    //         eprintln!("  {}: {}", e, code);
+    //     }
+    // }
+
+    // return Ok(());
+
     #[allow(unused_variables)]
     let kbd = keygraph_rs::generate_qwerty_us();
 
     let mut rng = rand::thread_rng();
 
-    let shortcode_set = SHORTCODES.iter().copied().collect::<HashSet<_>>();
+    let shortcode_set = RAW_PAIRS
+        .iter()
+        .map(|(a, _)| a)
+        .copied()
+        .collect::<HashSet<_>>();
 
     let mut checks = 0;
 
-    let words = BufReader::new(std::fs::File::open(
-        "/home/danielprilik/Downloads/missp.dat.txt",
-    )?);
-
-    let mut correct_emoji = "";
+    let mut correct_emoji = String::new();
     let mut correct_word = String::new();
 
-    let mut skip = false;
-    for ln in words.lines() {
-        let ln = ln?;
-        let word = if let Some(word) = ln.strip_prefix("$") {
-            skip = false;
-            if !shortcode_set.contains(word) {
-                skip = true;
-                continue;
-            }
-            correct_word = word.to_string();
-            correct_emoji = lookup(word).unwrap();
-            continue;
-        } else {
-            if skip {
-                continue;
-            }
-            &ln
-        };
+    // check for fat finger errors
 
-        checks += 1;
-        if lookup(word) == Some(correct_emoji) {
-            eprintln!(
-                "collision! {} | {} vs. {}",
-                correct_emoji, correct_word, word
-            );
-        }
-    }
-
-    // also check for fat finger errors
-
-    for word in SHORTCODES {
+    for word in shortcode_set.iter() {
         correct_word = word.to_string();
-        correct_emoji = lookup(word).unwrap();
+        correct_emoji = match lookup(word, &mut buf) {
+            Some(v) => v.into(),
+            None => continue,
+        };
 
         let mut word = word.as_bytes().to_vec();
         let mut orig;
@@ -75,7 +78,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 let bad_word = String::from_utf8(word.clone()).unwrap();
 
                 checks += 1;
-                if lookup(&bad_word) == Some(correct_emoji) {
+                if lookup(&bad_word, &mut buf) == Some(&correct_emoji) {
                     eprintln!(
                         "collision! {} | {} vs. {}",
                         correct_emoji, correct_word, bad_word
@@ -91,7 +94,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 let bad_word = String::from_utf8(bad_word).unwrap();
 
                 checks += 1;
-                if lookup(&bad_word) == Some(correct_emoji) {
+                if lookup(&bad_word, &mut buf) == Some(&correct_emoji) {
                     eprintln!(
                         "collision! {} | {} vs. {}",
                         correct_emoji, correct_word, bad_word
@@ -104,9 +107,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     // multiple random mispellings?
-    for word in SHORTCODES {
+    for word in shortcode_set.iter() {
         correct_word = word.to_string();
-        correct_emoji = lookup(word).unwrap();
+        correct_emoji = match lookup(word, &mut buf) {
+            Some(v) => v.into(),
+            None => continue,
+        };
 
         let mut word = word.as_bytes().to_vec();
 
@@ -116,7 +122,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         let first = pick_two.next().cloned().unwrap();
 
         let orig = word[first];
-        for key in ' '..='~' {
+        for key in (' '..='~').filter(|c| c.is_ascii_alphanumeric()) {
             if key as u8 == orig {
                 continue;
             }
@@ -128,7 +134,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             };
 
             let orig = word[second];
-            for key in ' '..='~' {
+            for key in (' '..='~').filter(|c| c.is_ascii_alphanumeric()) {
                 if key as u8 == orig {
                     continue;
                 }
@@ -137,7 +143,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 let bad_word = String::from_utf8(word.clone()).unwrap();
 
                 checks += 1;
-                if lookup(&bad_word) == Some(correct_emoji) {
+                if lookup(&bad_word, &mut buf) == Some(&correct_emoji) {
                     eprintln!(
                         "collision! {} | {} vs. {}",
                         correct_emoji, correct_word, bad_word
@@ -151,6 +157,4 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     eprintln!("checked {} misspellings", checks);
-
-    Ok(())
 }

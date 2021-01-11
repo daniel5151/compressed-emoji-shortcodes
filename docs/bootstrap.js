@@ -54,11 +54,7 @@
 /******/ 	var wasmImportObjects = {
 /******/ 		"../pkg/shortcode_web_bg.wasm": function() {
 /******/ 			return {
-/******/ 				"./shortcode_web_bg.js": {
-/******/ 					"__wbindgen_throw": function(p0i32,p1i32) {
-/******/ 						return installedModules["../pkg/shortcode_web_bg.js"].exports["__wbindgen_throw"](p0i32,p1i32);
-/******/ 					}
-/******/ 				}
+/******/
 /******/ 			};
 /******/ 		},
 /******/ 	};
@@ -159,7 +155,7 @@
 /******/ 				promises.push(installedWasmModuleData);
 /******/ 			else {
 /******/ 				var importObject = wasmImportObjects[wasmModuleId]();
-/******/ 				var req = fetch(__webpack_require__.p + "" + {"../pkg/shortcode_web_bg.wasm":"d409b04cedd411817cf2"}[wasmModuleId] + ".module.wasm");
+/******/ 				var req = fetch(__webpack_require__.p + "" + {"../pkg/shortcode_web_bg.wasm":"05744253f46c0e2a318f"}[wasmModuleId] + ".module.wasm");
 /******/ 				var promise;
 /******/ 				if(importObject instanceof Promise && typeof WebAssembly.compileStreaming === 'function') {
 /******/ 					promise = Promise.all([WebAssembly.compileStreaming(req), importObject]).then(function(items) {

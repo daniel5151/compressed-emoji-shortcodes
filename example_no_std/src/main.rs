@@ -22,6 +22,7 @@ fn panic(_info: &core::panic::PanicInfo) -> ! {
 fn rust_main() -> Result<(), i32> {
     let mut buf: [u8; 32] = [0; 32];
 
+    let mut emoji_buf = [0; 8];
     loop {
         unsafe {
             libc::fgets(buf.as_mut_ptr() as *mut _, 32, stdin);
@@ -34,7 +35,7 @@ fn rust_main() -> Result<(), i32> {
             break;
         }
 
-        match maximally_compressed_gh_shortcodes::lookup(s) {
+        match maximally_compressed_gh_shortcodes::lookup(s, &mut emoji_buf) {
             Some(e) => print_str(e),
             None => print_str("not found"),
         }

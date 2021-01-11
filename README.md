@@ -14,9 +14,11 @@ There are several test binaries included in this repo:
 
 - `collision-test`: a very messy playground for testing how well the library rejects invalid inputs.
 - `example_no_std`: a `no_std` Rust binary that serves as a rough benchmark for how much space the library occupies in a final binary.
-- `shortcode_web`: using the magic of `wasm-pack`, you can play with this project via an [incredibly barebones and terrible looking] online demo!
+- `shortcode-web`: using the magic of `wasm-pack`, you can play with this project via an [incredibly barebones and terrible looking] online demo!
 
 Try out the online demo [here](https://prilik.com/compressed-emoji-shortcodes)!
+
+Note that the `.wasm` size of the `shortcode-web` demo is not representative of the binary size on an proper embedded platform, since `wasm-bindgen` introduces almost 14kb of overhead for some reason (i.e: when the single exported function is replaced with a noop). I could _probably_ slim this down by bypassing `wasm-bindgen` entirely, and figuring out how to accept Javascript `String`s over the FFI, but that's _high effort_. So yeah, just subtract 14kb from the (uncompressed) `.wasm` size to get a better idea of the compression factor.
 
 ## Inspiration
 
@@ -31,24 +33,34 @@ Well, maybe it is!
 This project is an experiment to try and find the maximally compressed representation of the entire [github shortcode](https://www.webfx.com/tools/emoji-cheat-sheet/) set. Or, in other words, what's the smallest amount of storage (code and data) required to write a function with the following signature:
 
 ```rust
-fn shortcode_to_emoji: String -> [<Unicode Codepoint>]
+fn shortcode_to_emoji(shortcode: String) -> Emoji // (where `Emoji` can be somehow converted back into a UTF-8 string)
 ```
 
 Oh, and of course, we want this to run on platforms without heap allocation, so everything _must_ be pre-computed at compile time.
-
-## Iteration
-
-TODO: write some more about the process of arriving at the final solution
 
 ## Final Implementation
 
 This library uses a modified version of the incredible [rust-phf](https://github.com/sfackler/rust-phf) to generate a [perfect](https://en.wikipedia.org/wiki/Perfect_hash_function) hash-map of shortcodes to emoji at compile time, but instead of storing the keys as raw strings (which would take up a _lot_ of space, around `size_of(char*)` + 5 or 6 bytes on average), the map only stores a _1 byte hash_ of the expected string. This _substantially_ reducing the storage requirements, at the expense of the potential "false positive" results.
 
-Similarly, emoji are stored in a compressed representation, backed by a `u64`. (this is still a WIP, and isn't implemented yet)
+Additionally, instead of storing emoji as raw UTF-8 strings (which would incur a totally unreasonable `size_of(char*) + strlen(s)` overhead per emoji - or roughly \~) strings are stored inline as the bytes of a `u64`.
 
-* * *
+> Note: At the time of writing, using `u64`s as the backing representation limits what shortcodes can be represented (i.e: only emoji with a UTF-8 encoding less than 9 bytes). See `oversized_emoji.txt` for a list of missing shortcodes.
 
-But why does a PHF even need to store the keys in the first place? After all, won't every input just automagically map to the correct value?
+Lastly, instead of storing map entries as tuples in a `entries: &[(u8, u64)]`, keys and values are split into separate `keys: &[u8]`, `values: &[u64]` arrays, which eliminates a _lot_ of padding bytes.
+
+## Iteration and Further Ideas
+
+TODO: write some more about the process of arriving at the final solution
+
+- Support storing any length of emoji by using "cascading" PHFs?
+    - i.e: have `n` perfect hash tables for all `n` in `emoji.map(|e| e.as_bytes().len()).minmax()`.
+    - this would improve data density, as there wouldn't be all the wasted space from all the leading zeros for emoji that don't need them.
+
+## Miscellaneous Thoughts
+
+> I might throw these together into a proper writeup at some point. Or I might not - I'm not sure yet.
+
+Why does a PHF even need to store the keys in the first place? After all, won't every input just automagically map to the correct value?
 
 Well, while that may be true for _valid_ inputs, plugging an _invalid_ input into a PHF will just return some arbitrary index. To reject invalid inputs, a perfect hash function will include an [additional check](https://github.com/sfackler/rust-phf/blob/9b70bd9/phf/src/map.rs#L88) that compares the input key against the expected key at that particular index. This will ensure, with 100% certainty, that an invalid input is rejected, and doesn't return a bogus value.
 
@@ -62,7 +74,7 @@ Now, I'm no statistician, so I really can't comment to the theoretical accuracy 
 
 ## Acknowledgements
 
-This project wouldn't have been possible without the incredible [rust-phf](https://github.com/sfackler/rust-phf) library. The in-tree version of `rust-phf` is a stripped down version of the library which is modified to use a maximally space efficient representation to store key/value pairs.
+This project wouldn't have been possible without the incredible [rust-phf](https://github.com/sfackler/rust-phf) library. The in-tree version of `rust-phf` is a stripped down version and heavily modified version the library, optimizing the map's internal representation for this particular use-case.
 
 The initial POC of this project was based off of https://github.com/kornelski/gh-emoji.
 

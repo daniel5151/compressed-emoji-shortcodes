@@ -15,7 +15,9 @@ pub struct Map<V: 'static> {
     #[doc(hidden)]
     pub disps: Slice<(u32, u32)>,
     #[doc(hidden)]
-    pub entries: Slice<(u8, V)>,
+    pub keys: Slice<u8>,
+    #[doc(hidden)]
+    pub values: Slice<V>,
 }
 
 impl<V> Map<V> {
@@ -26,7 +28,7 @@ impl<V> Map<V> {
 
     /// Returns the number of entries in the `Map`.
     pub fn len(&self) -> usize {
-        self.entries.len()
+        self.keys.len()
     }
 
     /// Like `get`, but returns both the key and the value.
@@ -35,8 +37,8 @@ impl<V> Map<V> {
             return None;
         } //Prevent panic on empty map
         let hashes = phf_shared::hash(key, &self.key);
-        let index = phf_shared::get_index(&hashes, &*self.disps, self.entries.len());
-        let entry = &self.entries[index as usize];
+        let index = phf_shared::get_index(&hashes, &*self.disps, self.keys.len());
+        let entry = (self.keys[index as usize], &self.values[index as usize]);
         if entry.0 == checksum(key) {
             Some(&entry.1)
         } else {

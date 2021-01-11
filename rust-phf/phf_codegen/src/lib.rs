@@ -7,7 +7,7 @@ use phf_shared::checksum;
 /// A builder for the `phf::Map` type.
 pub struct Map<'a> {
     keys: Vec<&'a str>,
-    values: Vec<String>,
+    values: Vec<u64>,
     path: String,
 }
 
@@ -46,14 +46,15 @@ impl<'a> Map<'a> {
     /// Adds an entry to the builder.
     ///
     /// `value` will be written exactly as provided in the constructed source.
-    pub fn entry(&mut self, key: &'a str, value: &str) -> &mut Map<'a> {
+    pub fn entry(&mut self, key: &'a str, value: u64) -> &mut Map<'a> {
         self.keys.push(key);
-        self.values.push(value.to_owned());
+        self.values.push(value);
         self
     }
 
     /// Calculate the hash parameters and return a struct implementing
-    /// [`Display`](::std::fmt::Display) which will print the constructed `phf::Map`.
+    /// [`Display`](::std::fmt::Display) which will print the constructed
+    /// `phf::Map`.
     ///
     /// # Panics
     ///
@@ -82,7 +83,7 @@ pub struct DisplayMap<'a, 'b> {
     path: &'a str,
     state: HashState,
     keys: &'a [&'b str],
-    values: &'a [String],
+    values: &'a [u64],
 }
 
 impl<'a, 'b> fmt::Display for DisplayMap<'a, 'b> {
@@ -110,17 +111,34 @@ impl<'a, 'b> fmt::Display for DisplayMap<'a, 'b> {
             f,
             "
     ]),
-    entries: {}::Slice::Static(&[",
+    keys: {}::Slice::Static(&[",
             self.path
         )?;
 
-        // write map entries
+        // write map keys
         for &idx in &self.state.map {
             write!(
                 f,
                 "
-        ({}, {}),",
+        {},",
                 checksum(&self.keys[idx]),
+            )?;
+        }
+
+        write!(
+            f,
+            "
+    ]),
+    values: {}::Slice::Static(&[",
+            self.path
+        )?;
+
+        // write map values
+        for &idx in &self.state.map {
+            write!(
+                f,
+                "
+        {:#x?},",
                 &self.values[idx]
             )?;
         }
