@@ -1,6 +1,6 @@
-# Maximally Compressed Emoji Shortcodes
+# Highly Compressed Emoji Shortcode Mapping
 
-An experiment to try and find the maximally compressed representation of the
+An experiment to try and find a highly compressed representation of the
 entire
 [unicode shortcodes-to-emoji](https://raw.githubusercontent.com/github/gemoji/master/db/emoji.json)
 mapping that can be indexed _without requiring any dynamic allocation_. In other
