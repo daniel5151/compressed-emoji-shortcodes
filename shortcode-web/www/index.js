@@ -1,6 +1,32 @@
 import * as wasm from "shortcode-web";
 
+window.shortcode_lookup = wasm.lookup;
+
 const input = document.getElementById("lookup");
+const output = document.getElementById("output");
+const sample_invalid_input = document.getElementById("sample");
+
+// https://stackoverflow.com/questions/1349404/generate-random-string-characters-in-javascript
+function makeid(length) {
+   var result           = '';
+   var characters       = 'abcdefghijklmnopqrstuvwxyz__';
+   var charactersLength = characters.length;
+   for ( var i = 0; i < length; i++ ) {
+      result += characters.charAt(Math.floor(Math.random() * charactersLength));
+   }
+   return result;
+}
+
+// if the hash function didn't have false positives, this would loop forever.
+// good thing it doesn't!
+while (true) {
+    const id = makeid(10);
+    const out = shortcode_lookup(id);
+    if (out) {
+        sample_invalid_input.innerHTML = `<code>:${id}:</code> maps to ${out}`
+        break;
+    }
+}
 
 // https://stackoverflow.com/a/26156806
 function trimChar(string, charToRemove) {
@@ -15,41 +41,19 @@ function trimChar(string, charToRemove) {
     return string;
 }
 
-// https://coolaj86.com/articles/convert-js-bigints-to-typedarrays/
-function bnToBuf(bn) {
-  var hex = BigInt(bn).toString(16);
-  if (hex.length % 2) { hex = '0' + hex; }
-
-  var len = hex.length / 2;
-  var u8 = new Uint8Array(len);
-
-  var i = 0;
-  var j = 0;
-  while (i < len) {
-    u8[i] = parseInt(hex.slice(j, j+2), 16);
-    i += 1;
-    j += 2;
-  }
-
-  return u8;
-}
-
 input.onkeydown = function(e) {
     if (e.key == "Enter") {
-        const ret = wasm.lookup(trimChar(e.target.value, ':'));
+        const val = trimChar(e.target.value, ':');
+        const ret = wasm.lookup(val);
 
-        console.log(ret.toString(16))
-        console.log(bnToBuf(ret))
-
-        let txt = document.createElement("p");
-        if (ret == 0) {
-            txt.innerText = "not found";
+        let txt = "";
+        if (!ret) {
+            txt = `<p><code>:${val}:</code> is not a valid shortcode</p>`;
         } else {
-            let str = new TextDecoder().decode(bnToBuf(ret).reverse());
-            txt.innerText = str;
+            txt = `<p>mapped <code>:${val}:</code> to ${ret}</p>`;
         }
 
         e.target.value = "";
-        document.body.appendChild(txt);
+        output.innerHTML = txt + output.innerHTML;
     }
 }

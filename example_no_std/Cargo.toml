@@ -5,7 +5,7 @@ authors = ["Daniel Prilik <danielprilik@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-maximally-compressed-gh-shortcodes = { path = "../", default-features = false }
+maximally-compressed-emoji-shortcodes = { path = "../", default-features = false }
 
 libc = { version = "0.2", default-features = false }
 log = { version = "0.4", features = ["release_max_level_off"] }

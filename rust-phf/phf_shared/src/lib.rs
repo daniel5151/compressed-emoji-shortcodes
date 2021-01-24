@@ -40,12 +40,12 @@ pub fn hash<T: ?Sized + PhfHash>(x: &T, key: &HashKey) -> Hashes {
 }
 
 #[inline]
-pub fn checksum(s: &str) -> u8 {
+pub fn checksum(s: &str) -> u16 {
     s.as_bytes()
         .iter()
         .copied()
         // .fold(0, |a, x| a.wrapping_add(x)) // very easy to get collision
-        .fold(0, |a, x| (a.wrapping_mul(37).wrapping_add(x)))
+        .fold(0, |a, x| (a.wrapping_mul(37).wrapping_add(x as _)))
 }
 
 /// Return an index into `phf_generator::HashState::map`.

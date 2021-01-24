@@ -6,16 +6,15 @@ use rand::{Rng, SeedableRng};
 
 const DEFAULT_LAMBDA: usize = 5;
 
-const FIXED_SEED: u64 = 1234567890;
-
+#[derive(Debug)]
 pub struct HashState {
     pub key: HashKey,
     pub disps: Vec<(u32, u32)>,
     pub map: Vec<usize>,
 }
 
-pub fn generate_hash<H: PhfHash>(entries: &[H]) -> HashState {
-    SmallRng::seed_from_u64(FIXED_SEED)
+pub fn generate_hash<H: PhfHash>(entries: &[H], seed: u64) -> HashState {
+    SmallRng::seed_from_u64(seed)
         .sample_iter(Standard)
         .find_map(|key| try_generate_hash(entries, key))
         .expect("failed to solve PHF")

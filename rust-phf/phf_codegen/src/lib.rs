@@ -4,22 +4,17 @@ use std::fmt;
 use phf_generator::HashState;
 use phf_shared::checksum;
 
-/// A builder for the `phf::Map` type.
+/// A builder for the `phf::CompressedMap` type.
 pub struct Map<'a> {
+    datum_len: usize,
     keys: Vec<&'a str>,
-    values: Vec<u64>,
+    values: Vec<&'a str>,
     path: String,
 }
 
-impl<'a> Default for Map<'a> {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl<'a> Map<'a> {
-    /// Creates a new `phf::Map` builder.
-    pub fn new() -> Map<'a> {
+    /// Creates a new `phf::CompressedMap` builder.
+    pub fn new(datum_len: usize) -> Map<'a> {
         // FIXME rust#27438
         //
         // On Windows/MSVC there are major problems with the handling of dllimport.
@@ -31,6 +26,7 @@ impl<'a> Map<'a> {
         noop_fix_for_27438();
 
         Map {
+            datum_len,
             keys: vec![],
             values: vec![],
             path: String::from("::phf"),
@@ -46,7 +42,8 @@ impl<'a> Map<'a> {
     /// Adds an entry to the builder.
     ///
     /// `value` will be written exactly as provided in the constructed source.
-    pub fn entry(&mut self, key: &'a str, value: u64) -> &mut Map<'a> {
+    pub fn entry(&mut self, key: &'a str, value: &'a str) -> &mut Map<'a> {
+        assert_eq!(value.len(), self.datum_len, "{}, {}", key, value);
         self.keys.push(key);
         self.values.push(value);
         self
@@ -54,12 +51,12 @@ impl<'a> Map<'a> {
 
     /// Calculate the hash parameters and return a struct implementing
     /// [`Display`](::std::fmt::Display) which will print the constructed
-    /// `phf::Map`.
+    /// `phf::CompressedMap`.
     ///
     /// # Panics
     ///
     /// Panics if there are any duplicate keys.
-    pub fn build(&self) -> DisplayMap {
+    pub fn build(&self, seed: u64) -> DisplayMap {
         let mut set = HashSet::new();
         for key in &self.keys {
             if !set.insert(key) {
@@ -67,9 +64,10 @@ impl<'a> Map<'a> {
             }
         }
 
-        let state = phf_generator::generate_hash(self.keys.as_ref());
+        let state = phf_generator::generate_hash(self.keys.as_ref(), seed);
 
         DisplayMap {
+            datum_len: self.datum_len,
             path: &self.path,
             keys: &self.keys,
             values: &self.values,
@@ -79,11 +77,31 @@ impl<'a> Map<'a> {
 }
 
 /// An adapter for printing a [`Map`](Map).
+#[derive(Debug)]
 pub struct DisplayMap<'a, 'b> {
-    path: &'a str,
-    state: HashState,
-    keys: &'a [&'b str],
-    values: &'a [u64],
+    pub datum_len: usize,
+    pub path: &'a str,
+    pub state: HashState,
+    pub keys: &'a [&'b str],
+    pub values: &'a [&'b str],
+}
+
+impl<'a, 'b> DisplayMap<'a, 'b> {
+    /// Return an entry from the map
+    pub fn get(&self, key: &str) -> Option<&str> {
+        if self.state.disps.len() == 0 {
+            return None;
+        }
+        let hashes = phf_shared::hash(key, &self.state.key);
+        let index = phf_shared::get_index(&hashes, &*self.state.disps, self.keys.len());
+        let calc_key = self.keys[self.state.map[index as usize]];
+        let value = self.values[self.state.map[index as usize]];
+        if phf_shared::checksum(calc_key) == phf_shared::checksum(key) {
+            Some(value.trim_end_matches('\0'))
+        } else {
+            None
+        }
+    }
 }
 
 impl<'a, 'b> fmt::Display for DisplayMap<'a, 'b> {
@@ -92,9 +110,10 @@ impl<'a, 'b> fmt::Display for DisplayMap<'a, 'b> {
         write!(
             f,
             "{}::Map {{
+    datum_len: {},
     key: {:?},
     disps: {}::Slice::Static(&[",
-            self.path, self.state.key, self.path
+            self.path, self.datum_len, self.state.key, self.path
         )?;
 
         // write map displacements
@@ -129,7 +148,7 @@ impl<'a, 'b> fmt::Display for DisplayMap<'a, 'b> {
             f,
             "
     ]),
-    values: {}::Slice::Static(&[",
+    data: {}::Slice::Static(&[",
             self.path
         )?;
 
@@ -138,9 +157,13 @@ impl<'a, 'b> fmt::Display for DisplayMap<'a, 'b> {
             write!(
                 f,
                 "
-        {:#x?},",
-                &self.values[idx]
+        // {}
+        ",
+                self.values[idx].trim_end_matches('\0')
             )?;
+            for b in self.values[idx].as_bytes() {
+                write!(f, "{:#04x?},", b)?;
+            }
         }
 
         write!(

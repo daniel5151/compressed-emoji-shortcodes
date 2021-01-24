@@ -30,7 +30,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "89203f3fba0a3795506acaad8ebce3c80c0af93f994d5a1d7a0b1eeb23271929"
 
 [[package]]
-name = "maximally-compressed-gh-shortcodes"
+name = "maximally-compressed-emoji-shortcodes"
 version = "0.1.0"
 dependencies = [
  "phf",

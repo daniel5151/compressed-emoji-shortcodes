@@ -7,15 +7,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
-name = "collision-test"
-version = "0.1.0"
-dependencies = [
- "keygraph-rs",
- "maximally-compressed-gh-shortcodes",
- "rand 0.8.1",
-]
-
-[[package]]
 name = "fixedbitset"
 version = "0.1.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -60,6 +51,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "kowalski-analysis"
+version = "0.1.0"
+dependencies = [
+ "keygraph-rs",
+ "maximally-compressed-emoji-shortcodes",
+ "rand 0.8.1",
+]
+
+[[package]]
 name = "lazy_static"
 version = "0.2.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -72,7 +72,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "89203f3fba0a3795506acaad8ebce3c80c0af93f994d5a1d7a0b1eeb23271929"
 
 [[package]]
-name = "maximally-compressed-gh-shortcodes"
+name = "maximally-compressed-emoji-shortcodes"
 version = "0.1.0"
 dependencies = [
  "phf",

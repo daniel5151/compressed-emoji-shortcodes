@@ -1,5 +1,5 @@
 [package]
-name = "collision-test"
+name = "kowalski-analysis"
 version = "0.1.0"
 authors = ["Daniel Prilik <danielprilik@gmail.com>"]
 edition = "2018"
@@ -7,7 +7,7 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-maximally-compressed-gh-shortcodes = { path = "../", default-features = false }
+maximally-compressed-emoji-shortcodes = { path = "../", default-features = false }
 
 rand = "0.8.1"
 keygraph-rs = "0.2.5"

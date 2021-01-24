@@ -45,7 +45,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "maximally-compressed-gh-shortcodes"
+name = "maximally-compressed-emoji-shortcodes"
 version = "0.1.0"
 dependencies = [
  "phf",
@@ -219,7 +219,7 @@ version = "0.1.0"
 dependencies = [
  "libc",
  "log",
- "maximally-compressed-gh-shortcodes",
+ "maximally-compressed-emoji-shortcodes",
 ]
 
 [[package]]

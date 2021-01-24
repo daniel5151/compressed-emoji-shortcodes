@@ -10,7 +10,7 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 wasm-bindgen = "0.2.63"
 
-maximally-compressed-gh-shortcodes = { path = "../", default-features = false }
+maximally-compressed-emoji-shortcodes = { path = "../", default-features = false }
 
 [profile.release]
 opt-level = "s"
