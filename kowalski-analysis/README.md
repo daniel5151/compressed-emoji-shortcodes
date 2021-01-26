@@ -1,6 +1,6 @@
 # kowalski-analysis
 
-![](https://i.imgur.com/2b8BMTu.jpg)
+![](https://i.imgur.com/ilpDjuN.jpg)
 
 A quick and _very_ dirty crate to run various experiments on the raw and compressed datasets (e.g: checking for invalid mappings, false positives, rough compression rates, etc...).
 
