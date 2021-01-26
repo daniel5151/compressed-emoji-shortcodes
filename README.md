@@ -96,5 +96,5 @@ The emoji shortcode database is downloaded directly from Github's
 [gemoji](https://github.com/github/gemoji/tree/master) library.
 
 Special thanks to [Matt D'Souza](https://github.com/DSouzaM) and
-[Ethan Hardy](https://github.com/ethan-hardy), who were the aforementioned
-"smarter friends" who I bounced ideas off of.
+[Ethan Hardy](https://github.com/ethan-hardy), who I nerd-sniped into helping me
+with this funky little project.
