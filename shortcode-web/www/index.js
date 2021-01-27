@@ -43,7 +43,7 @@ function trimChar(string, charToRemove) {
 
 input.onkeydown = function(e) {
     if (e.key == "Enter") {
-        const val = trimChar(e.target.value, ':');
+        const val = trimChar(e.target.value, ':').toLowerCase();
         const ret = wasm.lookup(val);
 
         let txt = "";
