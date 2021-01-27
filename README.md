@@ -11,6 +11,9 @@ write a function with the following signature:
 fn shortcode_to_emoji(input: &str) -> Option<&str>
 ```
 
+Check out the project's [writeup](https://prilik.com/blog/post/emoji-shortcodes/)
+for more details on the rationale and idea behind this project.
+
 > **DISCLAIMER:** This is a project that was hacked together over the course of
 > a couple weekends, where iteration speed took priority over code
 > quality/robustness. The implementation is a mess, and the build system is
